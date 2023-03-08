@@ -1,7 +1,7 @@
 # F0AM-extension
 Extension for F0AM that allows for iterating through combinations of initial conditions and calculating a variety of parameters related to RO2 chemistry for each simulation.
 
-There are two relevant files:
+**There are two relevant files:**
 
 1. F0AM_span_initial_conditions
 This is the script that generates the initial condition matrix, runs a F0AM simulation for each of the initial conditions in that matrix, and then tabulates the calculated RO2-chemistry-related parameters.  This is the file where you specify which initial conditions you want to vary, and over what ranges.  It’s also where you specify the usual met variables and chem files to use.  And, at the end of the file, you can specify what to call the tabulated output for saving.
@@ -9,13 +9,13 @@ This is the script that generates the initial condition matrix, runs a F0AM simu
 2. calculate_RO2_parameters
 This is a function that calculates a variety of RO2-chemistry-related parameters (e.g., beta, tau, etc.).  You shouldn’t have to modify anything in this file unless you want to change how parameters are calculated or introduce new parameters. 
 
-There are two important outputs that will be saved when you run F0AM_span_initial conditions:
+**There are two important outputs that will be saved when you run F0AM_span_initial conditions:**
 
 1. cond_table: table with a row for each experiment tabulating all of the calculated parameters for each experiment
 
 2. time_series: structure with a field for each experiment, each of which contains a couple of RO2-related time series
 
-The parameters tabulated in cond_table are as follows:
+**The parameters tabulated in cond_table are as follows:**
 
 half_int_ind: time index at which the intermediate species selected reaches half of its maximum
 
@@ -93,7 +93,7 @@ initial_NO2: initial NO2 concentration
 
 initial_VOC: initial VOC concentration
 
-The parameters saved in time_series are as follow:
+**The parameters saved in time_series are as follow:**
 
 time: on a one-second time base
 
@@ -117,7 +117,7 @@ frac_O3_t: instantaneous fraction of VOC oxidized by O3 interpolated on one-seco
 
 frac_NO3_t: instantaneous fraction of VOC oxidized by NO3 interpolated on one-second time base
 
-General definitions:
+**General definitions:**
 
 Beta definition: fraction of RO2 that reacts with NO vs HO2 (beta = 1 means all reaction with NO, beta = 0 means all reaction with HO2)
 

@@ -51,10 +51,18 @@ cond_table.x90_VOC_ind = x90_VOC_ind;
 time_series.interp_VOC = interp_VOC;
 
         
-rates = sumRates_ROx(S);
-nox_rates = sumRates_NOx(S);
-PANs_prod = nox_rates.Loss(:,3);
-losses = [rates.Loss(:,[3,4,5,6]), PANs_prod];
+% rates = sumRates_ROx(S);
+% nox_rates = sumRates_NOx(S);
+% PANs_prod = nox_rates.Loss(:,3);
+% losses = [rates.Loss(:,[3,4,5,6]), PANs_prod];
+losses = sumRates_RO2loss(S).Loss;
+% 1 - RO2 + HO2
+% 2 - RO2 + RO2
+% 3 - RO2 + NO
+% 4 - RO2 + NO2
+% 5 - acylRO2 + NO2
+% 6 - RO2 + NO3
+% 7 - other RO2 loss reactions
 
 % interpolate values so they are on a linear timescale (otherwise
 % medians and means don't make sense)
@@ -84,7 +92,27 @@ cond_table.beta_gen1 = gen1_cumul_losses(end,3) ./ ...
     (gen1_cumul_losses(end,3) + gen1_cumul_losses(end,1));
 cond_table.beta_gen2 = gen2_cumul_losses(end,3) ./ ...
     (gen2_cumul_losses(end,3) + gen2_cumul_losses(end,1));
+k_NO_RO2 = 2.7e-12 * exp(360./S.Met.T);
+k_HO2_RO2 = 2.91e-13 * exp(1300./S.Met.T);
+time_series.beta_nosum = (k_NO_RO2 .* S.Conc.NO) ./ ...
+    (k_NO_RO2 .* S.Conc.NO + k_HO2_RO2 .* S.Conc.HO2);
 
+% gamma time series
+time_series.gamma_t = interp_losses(:,3) ./ (interp_losses(:,3) + interp_losses(:,5));
+% gamma integrated over the entire 8-hr experiment
+cond_table.gamma_8hr = cumul_losses(end,3) ./ (cumul_losses(end,3) + cumul_losses(end,5));
+% beta integrated until intermediate species reaches half its max
+cond_table.gamma_half_int = cumul_losses(half_int_ind,3) ./ (cumul_losses(half_int_ind, 3) + cumul_losses(half_int_ind,5));
+% gamma integrated until 90% of the initial VOC has been oxidized
+cond_table.gamma_90 = cumul_losses(x90_VOC_ind,3) ./ (cumul_losses(x90_VOC_ind, 3) + cumul_losses(x90_VOC_ind,5));
+% gammas integrated for each generation (defined based on intermeidate
+% concentrations, e.g. MVK)
+cond_table.gamma_gen1 = gen1_cumul_losses(end,3) ./ ...
+    (gen1_cumul_losses(end,3) + gen1_cumul_losses(end,5));
+cond_table.gamma_gen2 = gen2_cumul_losses(end,3) ./ ...
+    (gen2_cumul_losses(end,3) + gen2_cumul_losses(end,5));
+
+% version of gamma that only thinks about C4-C5 acyl RO2
 % gamma time series
 time_series.gamma_t = interp_losses(:,3) ./ (interp_losses(:,3) + interp_losses(:,5));
 % gamma integrated over the entire 8-hr experiment
@@ -114,6 +142,8 @@ cond_table.tau_gen1 = median(-1 * interp_RO2(:,1:int_max)' ./ ...
     (interp_losses(1:int_max,1) + interp_losses(1:int_max,3)), 'omitnan');
 cond_table.tau_gen2 = median(-1 * interp_RO2(:,int_max:half_int_ind)' ./ ...
     (interp_losses(int_max:half_int_ind,1) + interp_losses(int_max:half_int_ind,3)), 'omitnan');
+time_series.tau_nosum = 1 ./ (k_NO_RO2 * S.Conc.NO * NumberDensity(S.Met.P, S.Met.T) * 1e-9 + ...
+    k_HO2_RO2 * S.Conc.HO2 * NumberDensity(S.Met.P, S.Met.T) * 1e-9);
 
 % tau acyl
 time_series.tau_acyl_t = (-1 * interp_RO2' ./ ...
@@ -137,8 +167,10 @@ HO2_interp = interp1(S.Time(S.Time>timemin), ...
 cond_table.HO2 = median(HO2_interp, 'omitnan');
 NO_interp = interp1(S.Time(S.Time>timemin), ...
     S.Conc.NO(S.Time>timemin), time);
+cond_table.NO = median(NO_interp, 'omitnan');
 NO2_interp = interp1(S.Time(S.Time>timemin), ...
     S.Conc.NO2(S.Time>timemin), time);
+cond_table.NO2 = median(NO2_interp, 'omitnan');
 cond_table.NO_NO2 = median((NO_interp./NO2_interp), 'omitnan');
 cond_table.max_VOC = max(S.Conc.(VOC_name)(:));
 cond_table.end_VOC = S.Conc.(VOC_name)(end);
@@ -171,32 +203,32 @@ time_series.frac_O3_t = O3_loss ./ sum_loss;
 time_series.frac_NO3_t = NO3_loss ./ sum_loss;
 
 if isfield(S.Conc, 'HONO')
-    cond_table.inital_HONO = S.Conc.HONO(1);
+    cond_table.initial_HONO = S.Conc.HONO(1);
 else
     cond_table.initial_HONO = 0;
 end
 if isfield(S.Conc, 'H2O2')
-    cond_table.inital_H2O2 = S.Conc.H2O2(1);
+    cond_table.initial_H2O2 = S.Conc.H2O2(1);
 else
     cond_table.initial_H2O2 = 0;
 end
 if isfield(S.Conc, 'CH3ONO')
-    cond_table.inital_CH3ONO = S.Conc.CH3ONO(1);
+    cond_table.initial_CH3ONO = S.Conc.CH3ONO(1);
 else
     cond_table.initial_CH3ONO = 0;
 end
 if isfield(S.Conc, 'NO')
-    cond_table.inital_NO = S.Conc.NO(1);
+    cond_table.initial_NO = S.Conc.NO(1);
 else
     cond_table.initial_NO = 0;
 end
 if isfield(S.Conc, 'NO2')
-    cond_table.inital_NO2 = S.Conc.NO2(1);
+    cond_table.initial_NO2 = S.Conc.NO2(1);
 else
     cond_table.initial_NO2 = 0;
 end
 if isfield(S.Conc, VOC_name)
-    cond_table.inital_VOC = S.Conc.(VOC_name)(1);
+    cond_table.initial_VOC = S.Conc.(VOC_name)(1);
 else
     cond_table.initial_VOC = 0;
 end

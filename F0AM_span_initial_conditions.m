@@ -21,11 +21,19 @@ HONO_span = 5*logspace(0,3,m);
 H2O2_span =  5*logspace(0,4,n);
 NO_span = logspace(-3,3,o);
 
+% CH3ONO_span = 5*logspace(0,4,n);
+% NO_span = logspace(-3,3,o);
+
 % generate a matrix of initial conditions, then vectorize it
-[HONO_matrix, H2O2_matrix, NO_matrix]=ndgrid(HONO_span, H2O2_span, NO_span);
+[HONO_matrix, H2O2_matrix, NO_matrix] = ndgrid(HONO_span, H2O2_span, NO_span);
 HONO_concs = reshape(HONO_matrix,[],1);
 H2O2_concs = reshape(H2O2_matrix,[],1);
 NO_concs = reshape(NO_matrix,[],1);
+
+% [CH3ONO_matrix, NO_matrix] = ndgrid(CH3ONO_span, NO_span);
+% CH3ONO_concs = reshape(CH3ONO_matrix,[],1);
+% NO_concs = reshape(NO_matrix,[],1);
+
 
 
 %% METEOROLOGY
@@ -50,6 +58,7 @@ InitConc = {...
    'NO2'     0                       0;
    'HONO'    HONO_concs              0;
    'H2O2'    H2O2_concs              0;
+%    'CH3ONO'  CH3ONO_concs            0;
     };
 %% CHEMISTRY
 
@@ -59,7 +68,7 @@ ChemFiles = {...
 %     'MCMv331_AllRxns';
      'MCMv331_Inorg_Isoprene';
 %     'MCMv331_Inorg_apinene'
-%    'CH3ONO_hv'; %not included in MCM (doesn't exist in the atmosphere)
+   'CH3ONO_hv'; %not included in MCM (doesn't exist in the atmosphere)
     };
 
 %% DILUTION CONCENTRATIONS

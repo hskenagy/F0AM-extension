@@ -52,7 +52,7 @@ Met = {...
 
 InitConc = {...
 %   names       conc(ppb)           HoldMe
-   'C5H8'    100                     0;
+   'C5H8'    10                     0;
 %    'APINENE' 100                     0;
    'NO'      NO_concs                0;
    'NO2'     0                       0;
@@ -76,6 +76,7 @@ ChemFiles = {...
 BkgdConc = {...
 %   names           values
     'DEFAULT'       0;   %0 for all zeros, 1 to use InitConc
+%     'NO'           [0; 750; 3750; 7500; 37500; 75000];
    };
 
 %% OPTIONS
@@ -84,7 +85,7 @@ ModelOptions.Verbose       = 1;
 ModelOptions.EndPointsOnly = 0;
 ModelOptions.LinkSteps     = 0;
 %ModelOptions.Repeat        = 1;
-ModelOptions.IntTime       = 3600*4; %Total model time in seconds
+ModelOptions.IntTime       = 3600*8; %Total model time in seconds
 ModelOptions.SavePath      = 'IterateInitialConditionsOutput.mat';
 ModelOptions.GoParallel    = 0;
 
